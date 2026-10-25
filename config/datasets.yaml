@@ -1,0 +1,93 @@
+categories:
+  - Good
+  - Satisfactory
+  - Moderate
+  - Poor
+  - Very Poor
+  - Severe
+
+cpcb_breakpoints:
+  PM2.5:
+    - [0, 30, Good]
+    - [30, 60, Satisfactory]
+    - [60, 90, Moderate]
+    - [90, 120, Poor]
+    - [120, 250, Very Poor]
+    - [250, 999999, Severe]
+  PM10:
+    - [0, 50, Good]
+    - [50, 100, Satisfactory]
+    - [100, 250, Moderate]
+    - [250, 350, Poor]
+    - [350, 430, Very Poor]
+    - [430, 999999, Severe]
+  NO2:
+    - [0, 40, Good]
+    - [40, 80, Satisfactory]
+    - [80, 180, Moderate]
+    - [180, 280, Poor]
+    - [280, 400, Very Poor]
+    - [400, 999999, Severe]
+  CO: # mg/m3
+    - [0, 1.0, Good]
+    - [1.0, 2.0, Satisfactory]
+    - [2.0, 10.0, Moderate]
+    - [10.0, 17.0, Poor]
+    - [17.0, 34.0, Very Poor]
+    - [34.0, 999999, Severe]
+
+datasets:
+  india:
+    name: "India (city_day.csv)"
+    member: "Member 1"
+    raw_path: "data/raw/india_city_day.csv"
+    processed_path: "data/processed/india_processed.csv"
+    date_col: "Date"
+    target_col: "AQI_Bucket"
+    drop_leakage_cols: ["AQI"]
+    target_type: "predefined"
+    categorical_cols: ["City"]
+    ablation_cols: ["PM2.5", "PM10"]
+
+  italy:
+    name: "Italy (UCI Air Quality)"
+    member: "Member 2"
+    raw_path: "data/raw/italy_air_quality_uci.csv"
+    processed_path: "data/processed/italy_processed.csv"
+    delimiter: ";"
+    decimal: ","
+    sentinel_value: -200
+    date_col: "Date"
+    time_col: "Time"
+    target_type: "worse_of_co_no2"
+    co_col: "CO(GT)"
+    no2_col: "NO2(GT)"
+    drop_leakage_cols: ["CO(GT)", "NO2(GT)", "NMHC(GT)"]
+    categorical_cols: []
+
+  beijing:
+    name: "Beijing (UCI PM2.5)"
+    member: "Member 3"
+    raw_path: "data/raw/beijing_pm25.csv"
+    processed_path: "data/processed/beijing_processed.csv"
+    drop_leakage_cols: ["No", "pm2.5"]
+    pm25_col: "pm2.5"
+    target_type: "pm25_cpcb"
+    year_col: "year"
+    month_col: "month"
+    day_col: "day"
+    hour_col: "hour"
+    wind_col: "cbwd"
+    categorical_cols: ["cbwd"]
+
+  seoul:
+    name: "Seoul (Air Pollution Dataset)"
+    member: "Member 4"
+    raw_path: "data/raw/seoul_air_pollution.csv"
+    processed_path: "data/processed/seoul_processed.csv"
+    date_col: "Measurement date"
+    station_col: "Station code"
+    pm25_col: "PM2.5"
+    target_type: "pm25_cpcb"
+    drop_leakage_cols: ["PM2.5", "Address"]
+    categorical_cols: ["Station code"]
