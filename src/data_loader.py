@@ -126,17 +126,10 @@ def load_beijing_dataset(filepath: str, aggregate_daily: bool = True) -> pd.Data
     df = df[df["AQI_Category"].isin(AQI_CATEGORIES)].copy()
 
     if aggregate_daily:
-        # Group by Date
         df["Date"] = df["DateTime"].dt.date
-        
-        # Numeric columns mean
         numeric_cols = ["DEWP", "TEMP", "PRES", "Iws", "Is", "Ir"]
         daily_num = df.groupby("Date")[numeric_cols].mean()
-        
-        # Most frequent wind direction per day
         daily_wind = df.groupby("Date")["cbwd"].agg(lambda x: x.mode()[0] if not x.empty else "cv")
-        
-        # Target: daily mean PM2.5 or worst category of the day
         daily_pm25 = df.groupby("Date")["pm2.5"].mean()
         daily_cat = daily_pm25.apply(classify_pm25)
         
@@ -150,7 +143,7 @@ def load_beijing_dataset(filepath: str, aggregate_daily: bool = True) -> pd.Data
         daily_df = daily_df.dropna(subset=["AQI_Category"]).copy()
         return daily_df
     else:
-        # Drop index and target-leakage
+        
         df = df.drop(columns=["No", "pm2.5"])
         return df
 

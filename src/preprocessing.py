@@ -54,7 +54,6 @@ def build_preprocessor(
     scale: bool = True,
     impute_strategy: str = "median"
 ) -> ColumnTransformer:
-    # Numeric pipeline
     num_steps = []
     if impute_strategy == "knn":
         num_steps.append(("imputer", KNNImputer(n_neighbors=5)))
@@ -66,7 +65,6 @@ def build_preprocessor(
 
     num_pipeline = Pipeline(steps=num_steps)
 
-    # Categorical pipeline
     cat_steps = [
         ("imputer", SimpleImputer(strategy="most_frequent")),
         ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))

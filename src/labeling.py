@@ -1,9 +1,3 @@
-"""
-labeling.py
-Shared CPCB Breakpoint Definitions and AQI Category Classification Functions.
-Official Central Pollution Control Board (CPCB) National Air Quality Index (NAQI) Breakpoints.
-"""
-
 from typing import Union, List
 import numpy as np
 import pandas as pd
@@ -87,7 +81,6 @@ def classify_worse_of_co_and_no2(co_val: float, no2_val: float) -> Union[str, fl
     if pd.isna(cat_no2):
         return cat_co
 
-    # Rank severity by index: 0 (Good) to 5 (Severe)
     idx_co = CATEGORY_TO_ID[cat_co]
     idx_no2 = CATEGORY_TO_ID[cat_no2]
     worse_idx = max(idx_co, idx_no2)

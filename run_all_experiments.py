@@ -1,122 +1,110 @@
 """
-run_all_experiments.py
-Main reproducible experiment orchestrator.
-Executes the independent member modules for all 4 team members:
-1. Vimal (src/Vimal): India Dataset | Logistic Regression & KNN
-2. Sreenidhi (src/Sreenidhi): Italy Dataset | SVM (LinearSVC) & Naive Bayes
-3. Rohith (src/Rohith): Beijing Dataset | Random Forest & Gradient Boosting
-4. Sruthi (src/Sruthi): Seoul Dataset | Decision Tree & XGBoost
-
-Aggregates individual member results from src/<Member>/results/ into results/results.csv,
-and generates publication-quality cross-dataset team heatmaps, rankings, and ablation figures.
+Master Experiment Runner
+Executes all 4 independent member benchmarks and aggregates results into a consolidated team comparison.
 """
 
 import os
 import sys
-import time
 import shutil
+import subprocess
 import pandas as pd
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+from src.comparison import plot_team_models_summary, plot_cross_dataset_heatmap
 
-from src.Vimal.run_experiments import run_vimal_experiments
-from src.Sreenidhi.run_experiments import run_sreenidhi_experiments
-from src.Rohith.run_experiments import run_rohith_experiments
-from src.Sruthi.run_experiments import run_sruthi_experiments
-
-from src.comparison import (
-    aggregate_team_results,
-    plot_cross_dataset_heatmap,
-    plot_team_models_summary,
-    plot_average_algorithm_ranks
-)
+MEMBERS = ["Vimal", "Sreenidhi", "Rohith", "Sruthi"]
 
 
-def main():
-    start_total = time.time()
-    print("=" * 70)
-    print("  ACADEMIC ML BENCHMARK: 4-MEMBER COLLABORATIVE AQI STUDY")
-    print("  8 Classifiers Paired Across 4 International Environmental Datasets")
-    print("=" * 70)
+def run_all_benchmarks():
+    """Runs each member's experiment script in their respective directory."""
+    print("=" * 65)
+    print("  RUNNING ALL 4 TEAM MEMBER BENCHMARKS")
+    print("=" * 65)
 
-    # 1. Execute Member 1 (Vimal - India)
-    run_vimal_experiments()
+    base_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # 2. Execute Member 2 (Sreenidhi - Italy)
-    run_sreenidhi_experiments()
+    for member in MEMBERS:
+        member_dir = os.path.join(base_dir, "src", member)
+        script_path = os.path.join(member_dir, "run_experiments.py")
 
-    # 3. Execute Member 3 (Rohith - Beijing)
-    run_rohith_experiments()
+        if os.path.exists(script_path):
+            print(f"\n>>> Executing benchmark for {member}...")
+            subprocess.run([sys.executable, "run_experiments.py"], cwd=member_dir, check=True)
+        else:
+            print(f"Warning: Script not found at {script_path}")
 
-    # 4. Execute Member 4 (Sruthi - Seoul)
-    run_sruthi_experiments()
 
-    # 5. Aggregate all member results
-    print("\n" + "=" * 70)
-    print("  AGGREGATING ALL TEAM RESULTS & CROSS-DATASET SYNTHESIS")
-    print("=" * 70)
+def aggregate_results():
+    """Combines individual member CSVs into results/results.csv and generates team plots."""
+    print("\n" + "=" * 65)
+    print("  AGGREGATING TEAM RESULTS")
+    print("=" * 65)
 
-    member_csvs = [
-        "src/Vimal/results/vimal_results.csv",
-        "src/Sreenidhi/results/sreenidhi_results.csv",
-        "src/Rohith/results/rohith_results.csv",
-        "src/Sruthi/results/sruthi_results.csv"
-    ]
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    results_dir = os.path.join(base_dir, "results")
+    plots_dir = os.path.join(results_dir, "plots")
+    metrics_dir = os.path.join(results_dir, "metrics")
+    cm_dir = os.path.join(results_dir, "confusion_matrices")
+    fi_dir = os.path.join(results_dir, "feature_importance")
+
+    for d in [results_dir, plots_dir, metrics_dir, cm_dir, fi_dir]:
+        os.makedirs(d, exist_ok=True)
 
     dfs = []
-    for m_csv in member_csvs:
-        if os.path.exists(m_csv):
-            dfs.append(pd.read_csv(m_csv))
-        else:
-            print(f"Warning: Missing results file {m_csv}")
+    for member in MEMBERS:
+        csv_path = os.path.join(base_dir, "src", member, "results", f"{member.lower()}_results.csv")
+        if os.path.exists(csv_path):
+            df = pd.read_csv(csv_path)
+            dfs.append(df)
+            print(f"Loaded {len(df)} runs from {member}")
 
     if not dfs:
         print("Error: No results found to aggregate!")
         return
 
-    full_results_df = pd.concat(dfs, ignore_index=True)
-    os.makedirs("results", exist_ok=True)
-    os.makedirs("results/plots", exist_ok=True)
-    os.makedirs("results/metrics", exist_ok=True)
-    os.makedirs("results/confusion_matrices", exist_ok=True)
-    os.makedirs("results/feature_importance", exist_ok=True)
+    full_results = pd.concat(dfs, ignore_index=True)
+    full_csv = os.path.join(results_dir, "results.csv")
+    full_results.to_csv(full_csv, index=False)
+    print(f"Consolidated results saved to: {full_csv}")
 
-    results_csv = "results/results.csv"
-    full_results_df.to_csv(results_csv, index=False)
-    print(f"Aggregated {len(full_results_df)} experimental runs saved to {results_csv}")
+    # Copy member plots to global results folder
+    for member in MEMBERS:
+        mem_results_dir = os.path.join(base_dir, "src", member, "results")
+        if not os.path.exists(mem_results_dir):
+            continue
+        for file_name in os.listdir(mem_results_dir):
+            src_file = os.path.join(mem_results_dir, file_name)
+            if file_name.startswith("cm_"):
+                shutil.copy(src_file, os.path.join(cm_dir, file_name))
+            elif file_name.startswith("fi_"):
+                shutil.copy(src_file, os.path.join(fi_dir, file_name))
+            elif file_name.endswith(".png"):
+                shutil.copy(src_file, os.path.join(plots_dir, file_name))
 
-    # Copy plots & metrics from member results to root results
-    for root_dir, dirs, files in os.walk("src"):
-        if "results" in root_dir.split(os.sep):
-            for f in files:
-                src_path = os.path.join(root_dir, f)
-                if f.startswith("cm_"):
-                    shutil.copy(src_path, os.path.join("results/confusion_matrices", f))
-                elif f.startswith("fi_"):
-                    shutil.copy(src_path, os.path.join("results/feature_importance", f))
-                elif f.startswith("ablation_") or f.endswith("_ablation_results.csv"):
-                    if f.endswith(".png"):
-                        shutil.copy(src_path, os.path.join("results/plots", f))
-                    elif f.endswith(".csv"):
-                        shutil.copy(src_path, os.path.join("results/metrics", f))
-                elif f.endswith(".png") and not f.startswith("cm_") and not f.startswith("fi_"):
-                    shutil.copy(src_path, os.path.join("results/plots", f))
+    # Generate cross-dataset summary figures
+    print("\nGenerating Team Comparison Visualizations...")
+    plot_team_models_summary(full_results, os.path.join(plots_dir, "team_models_summary_none.png"), method="none")
+    plot_cross_dataset_heatmap(full_results, os.path.join(plots_dir, "cross_dataset_heatmap_none.png"), method="none")
 
-    # Generate Team-Level Comparisons
-    print("\nGenerating Team-Level Cross-Dataset Visualizations...")
-    plot_cross_dataset_heatmap(full_results_df, "results/plots/cross_dataset_heatmap_none.png", method="none")
-    plot_cross_dataset_heatmap(full_results_df, "results/plots/cross_dataset_heatmap_class_weight.png", method="class_weight")
-    plot_team_models_summary(full_results_df, "results/plots/team_models_summary_none.png", method="none")
-    plot_team_models_summary(full_results_df, "results/plots/team_models_summary_class_weight.png", method="class_weight")
-    plot_average_algorithm_ranks(full_results_df, "results/plots/average_algorithm_ranks.png")
+    # Save summary metrics table
+    summary_cols = ["member", "dataset_name", "algorithm", "macro_f1", "balanced_acc", "accuracy", "train_seconds"]
+    summary_df = full_results[summary_cols]
+    summary_df.to_csv(os.path.join(metrics_dir, "summary_metrics.csv"), index=False)
 
-    # Generate quick summary table
-    summary_cols = ["member", "dataset_name", "algorithm", "imbalance_method", "macro_f1", "balanced_acc", "accuracy", "off_by_2_plus", "train_seconds"]
-    summary_df = full_results_df[summary_cols]
-    summary_df.to_csv("results/metrics/summary_metrics.csv", index=False)
+    print("\n" + "=" * 65)
+    print("  TEAM-WIDE BENCHMARK SUMMARY")
+    print("=" * 65)
+    print(summary_df.to_string(index=False))
+    print("=" * 65)
+    print(f"\nAll team outputs saved to: {results_dir}\n")
 
-    total_time = time.time() - start_total
-    print(f"\nALL EXPERIMENTS & CROSS-DATASET SYNTHESIS COMPLETED IN {total_time/60.0:.2f} MINUTES!")
+
+def main():
+    # If called with --aggregate, only aggregates existing results without re-running
+    if len(sys.argv) > 1 and sys.argv[1] == "--aggregate":
+        aggregate_results()
+    else:
+        run_all_benchmarks()
+        aggregate_results()
 
 
 if __name__ == "__main__":
