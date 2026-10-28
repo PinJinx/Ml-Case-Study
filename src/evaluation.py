@@ -1,15 +1,3 @@
-"""
-evaluation.py
-Comprehensive evaluation suite for multi-class ordinal AQI classification:
-- Macro F1 (primary metric)
-- Balanced Accuracy
-- Accuracy
-- Per-class Precision, Recall, F1
-- Normalized Confusion Matrix
-- Off-by-2+ Ordinal Error Rate
-- Cross-validation scoring and runtime measurement
-"""
-
 import time
 from typing import Dict, Any, List, Optional
 import numpy as np

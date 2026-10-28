@@ -39,21 +39,20 @@ cpcb_breakpoints:
 datasets:
   india:
     name: "India (city_day.csv)"
-    member: "Member 1"
-    raw_path: "data/raw/india_city_day.csv"
-    processed_path: "data/processed/india_processed.csv"
+    member: "Vimal (Member 1)"
+    raw_path: "src/Vimal/data/india_city_day.csv"
     date_col: "Date"
     target_col: "AQI_Bucket"
     drop_leakage_cols: ["AQI"]
     target_type: "predefined"
     categorical_cols: ["City"]
     ablation_cols: ["PM2.5", "PM10"]
+    algorithms: ["logistic_regression", "knn"]
 
   italy:
     name: "Italy (UCI Air Quality)"
-    member: "Member 2"
-    raw_path: "data/raw/italy_air_quality_uci.csv"
-    processed_path: "data/processed/italy_processed.csv"
+    member: "Sreenidhi (Member 2)"
+    raw_path: "src/Sreenidhi/data/italy_air_quality_uci.csv"
     delimiter: ";"
     decimal: ","
     sentinel_value: -200
@@ -64,12 +63,12 @@ datasets:
     no2_col: "NO2(GT)"
     drop_leakage_cols: ["CO(GT)", "NO2(GT)", "NMHC(GT)"]
     categorical_cols: []
+    algorithms: ["svm", "naive_bayes"]
 
   beijing:
     name: "Beijing (UCI PM2.5)"
-    member: "Member 3"
-    raw_path: "data/raw/beijing_pm25.csv"
-    processed_path: "data/processed/beijing_processed.csv"
+    member: "Rohith (Member 3)"
+    raw_path: "src/Rohith/data/beijing_pm25.csv"
     drop_leakage_cols: ["No", "pm2.5"]
     pm25_col: "pm2.5"
     target_type: "pm25_cpcb"
@@ -79,15 +78,16 @@ datasets:
     hour_col: "hour"
     wind_col: "cbwd"
     categorical_cols: ["cbwd"]
+    algorithms: ["random_forest", "gradient_boosting"]
 
   seoul:
     name: "Seoul (Air Pollution Dataset)"
-    member: "Member 4"
-    raw_path: "data/raw/seoul_air_pollution.csv"
-    processed_path: "data/processed/seoul_processed.csv"
+    member: "Sruthi (Member 4)"
+    raw_path: "src/Sruthi/data/seoul_air_pollution.csv"
     date_col: "Measurement date"
     station_col: "Station code"
     pm25_col: "PM2.5"
     target_type: "pm25_cpcb"
     drop_leakage_cols: ["PM2.5", "Address"]
     categorical_cols: ["Station code"]
+    algorithms: ["decision_tree", "xgboost"]

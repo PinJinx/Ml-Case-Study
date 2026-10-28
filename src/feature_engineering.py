@@ -8,12 +8,6 @@ import pandas as pd
 
 
 def add_temporal_features(df: pd.DataFrame, date_col: str = "Date") -> pd.DataFrame:
-    """
-    Extract temporal features from datetime column:
-    - Month, Day of Week, Is Weekend
-    - Cyclical transformations (sin/cos of month and day of week)
-    - Meteorological season (Winter, Spring, Summer, Autumn)
-    """
     df = df.copy()
     if date_col not in df.columns:
         if "DateTime" in df.columns:

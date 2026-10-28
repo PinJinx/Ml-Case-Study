@@ -21,12 +21,6 @@ def chronological_train_test_split(
     train_ratio: float = 0.8,
     date_col: Optional[str] = None
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """
-    Split time-series data chronologically:
-    - First 80% for training.
-    - Last 20% for held-out testing.
-    - No random shuffling.
-    """
     if date_col and date_col in df.columns:
         df = df.sort_values(date_col).reset_index(drop=True)
 
@@ -39,7 +33,6 @@ def chronological_train_test_split(
     y_train_raw = train_df[target_col]
     y_test_raw = test_df[target_col]
 
-    # Map target strings to integer IDs
     y_train = y_train_raw.map(CATEGORY_TO_ID).astype(int)
     y_test = y_test_raw.map(CATEGORY_TO_ID).astype(int)
 
@@ -61,12 +54,6 @@ def build_preprocessor(
     scale: bool = True,
     impute_strategy: str = "median"
 ) -> ColumnTransformer:
-    """
-    Build scikit-learn ColumnTransformer for preprocessing:
-    - Imputation: Median (or mean/KNN) for numeric columns, most_frequent for categorical.
-    - Scaling: StandardScaler applied if scale=True (for LR, KNN, SVM).
-    - Encoding: OneHotEncoder (handle_unknown='ignore') for categorical columns.
-    """
     # Numeric pipeline
     num_steps = []
     if impute_strategy == "knn":

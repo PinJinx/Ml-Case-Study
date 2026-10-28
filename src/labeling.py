@@ -52,7 +52,6 @@ NO2_BREAKPOINTS = [
 
 
 def classify_scalar(value: float, breakpoints: List[tuple]) -> Union[str, float]:
-    """Classify a single numeric measurement into an AQI category according to breakpoints."""
     if pd.isna(value) or value < 0:
         return np.nan
     for low, high, category in breakpoints:
@@ -66,25 +65,18 @@ def classify_scalar(value: float, breakpoints: List[tuple]) -> Union[str, float]
 
 
 def classify_pm25(value: float) -> Union[str, float]:
-    """Classify PM2.5 24-hr average (µg/m³) into CPCB category."""
     return classify_scalar(value, PM25_BREAKPOINTS)
 
 
 def classify_co(value: float) -> Union[str, float]:
-    """Classify CO (mg/m³) into CPCB category."""
     return classify_scalar(value, CO_BREAKPOINTS)
 
 
 def classify_no2(value: float) -> Union[str, float]:
-    """Classify NO2 24-hr average (µg/m³) into CPCB category."""
     return classify_scalar(value, NO2_BREAKPOINTS)
 
 
 def classify_worse_of_co_and_no2(co_val: float, no2_val: float) -> Union[str, float]:
-    """
-    Construct AQI category using the worse (maximum severity) of CO and NO2 concentration bands.
-    If both are NaN, returns NaN. If one is valid, uses that one.
-    """
     cat_co = classify_co(co_val)
     cat_no2 = classify_no2(no2_val)
 
@@ -103,9 +95,5 @@ def classify_worse_of_co_and_no2(co_val: float, no2_val: float) -> Union[str, fl
 
 
 def compute_off_by_two_or_more(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Compute percentage of predictions that are >= 2 AQI categories away from the true category.
-    Ordinal error metric critical for assessing dangerous misclassifications (e.g., Severe predicted as Good/Satisfactory).
-    """
     diffs = np.abs(np.array(y_true) - np.array(y_pred))
     return float(np.mean(diffs >= 2) * 100.0)
